@@ -1,0 +1,18 @@
+学习日程 Windows 安装版第三方组件
+
+本程序内置 Python 3.14 运行环境，采用 Python Software Foundation 许可。
+完整许可文本见同目录的 Python-LICENSE.txt。
+https://www.python.org/
+
+图形界面使用 Tcl/Tk，其许可文本随运行文件保留在：
+Tcl-LICENSE.txt 和 Tk-LICENSE.txt
+https://www.tcl-lang.org/
+
+独立程序由 PyInstaller 构建。其引导程序采用 GPL 及允许应用分发的引导程序例外。
+https://pyinstaller.org/en/stable/license.html
+
+安装程序使用 Inno Setup 构建。
+https://jrsoftware.org/isinfo.php
+
+中文安装向导翻译来自 Inno-Setup-Chinese-Simplified-Translation，翻译署名保留在源码语言文件中。
+https://github.com/kira-96/Inno-Setup-Chinese-Simplified-Translation
