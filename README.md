@@ -4,16 +4,16 @@
 
 ## 下载与安装
 
-[下载最新安装包](https://github.com/Royalstar67w/study-schedule/releases/latest)
+[下载最新安装包](https://github.com/CodeAugmentation-Jimmy/light-local-study-schedule/releases/latest)
 
 本次发布包含 Windows 1.2.3 与安卓 1.2，两端支持局域网同步。
 
 | 平台 | 安装包 | 系统要求 |
 | --- | --- | --- |
-| Windows | [StudySchedule-Setup-1.2.3.exe](https://github.com/Royalstar67w/study-schedule/releases/download/v1.2.3/StudySchedule-Setup-1.2.3.exe) | Windows 10 2004 及以上／Windows 11，x64 |
-| 安卓 | [StudySchedule-android-1.2.apk](https://github.com/Royalstar67w/study-schedule/releases/download/v1.2.3/StudySchedule-android-1.2.apk) | Android 8.0 及以上 |
+| Windows | [StudySchedule-Setup-1.2.3.exe](https://github.com/CodeAugmentation-Jimmy/light-local-study-schedule/releases/download/v1.2.3/StudySchedule-Setup-1.2.3.exe) | Windows 10 2004 及以上／Windows 11，x64 |
+| 安卓 | [StudySchedule-android-1.2.apk](https://github.com/CodeAugmentation-Jimmy/light-local-study-schedule/releases/download/v1.2.3/StudySchedule-android-1.2.apk) | Android 8.0 及以上 |
 
-文件校验值见同一发行版中的 [SHA256SUMS.txt](https://github.com/Royalstar67w/study-schedule/releases/download/v1.2.3/SHA256SUMS.txt)。
+文件校验值见同一发行版中的 [SHA256SUMS.txt](https://github.com/CodeAugmentation-Jimmy/light-local-study-schedule/releases/download/v1.2.3/SHA256SUMS.txt)。
 
 - Windows 下载 `.exe` 后运行中文安装向导，无需另外安装 Python。安装后从桌面或开始菜单打开“学习日程”。
 - 安卓将 `.apk` 传至手机后安装，按系统提示允许此次文件来源安装应用。
