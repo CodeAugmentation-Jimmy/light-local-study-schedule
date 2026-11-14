@@ -124,6 +124,7 @@ public class MainActivity extends Activity {
         addWeighted(actions, button("历史记录", this::history));
         addWeighted(actions, button("局域网同步", this::syncDialog));
         content.addView(button("近 7 天统计与连续学习", this::statistics));
+        content.addView(button("补记学习时间", this::manualTime));
         LinearLayout calendarActions = row(); content.addView(calendarActions);
         addWeighted(calendarActions, button("未来 14 天课程表", this::calendar));
         Switch allCourses = new Switch(this); allCourses.setText("全部课程"); allCourses.setChecked(showAllCourses);
@@ -368,6 +369,39 @@ public class MainActivity extends Activity {
                 .setNegativeButton("取消", null).setPositiveButton("删除", (d, w) -> {
                     try { store.delete(item.optString("id")); refresh(); } catch (Exception e) { error(e); }
                 }).show();
+    }
+    private void manualTime() {
+        List<JSONObject> courses = store.items();
+        if (courses.isEmpty()) { Toast.makeText(this, "请先添加课程，例如“英语听力”", Toast.LENGTH_LONG).show(); return; }
+        LinearLayout form = column(); form.setPadding(dp(20), dp(8), dp(20), dp(12));
+        form.addView(text("选择课程（含今天未安排的课程）", 14, MUTED));
+        Spinner course = new Spinner(this);
+        List<String> names = new ArrayList<>(); int selectedIndex = 0;
+        for (int i = 0; i < courses.size(); i++) {
+            names.add(courses.get(i).optString("name"));
+            if (courses.get(i).optString("id").equals(selected)) selectedIndex = i;
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, names);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        course.setAdapter(adapter); course.setSelection(selectedIndex); form.addView(course);
+        form.addView(text("学习日期（年-月-日）", 14, MUTED));
+        EditText day = new EditText(this); day.setSingleLine(true); day.setText(StudyStore.today()); form.addView(day);
+        form.addView(text("增加时长（分钟，1 至 1440）", 14, MUTED));
+        EditText minutes = new EditText(this); minutes.setInputType(InputType.TYPE_CLASS_NUMBER); minutes.setText("30"); form.addView(minutes);
+        form.addView(text("补记会加入所选日期的学习统计，并参与同步。每次保存都会增加时长，请只补记尚未记录的时间。", 12, MUTED));
+        ScrollView scroll = new ScrollView(this); scroll.addView(form);
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("补记学习时间").setView(scroll)
+                .setPositiveButton("保存补记", null).setNegativeButton("取消", null).create();
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            try {
+                int value;
+                try { value = Integer.parseInt(minutes.getText().toString().trim()); }
+                catch (NumberFormatException e) { throw new IllegalArgumentException("请输入 1 至 1440 的整数分钟数"); }
+                store.addManualTime(courses.get(course.getSelectedItemPosition()).optString("id"), day.getText().toString().trim(), value);
+                refresh(); dialog.dismiss();
+                Toast.makeText(this, "已补记 " + value + " 分钟", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) { error(e); }
+        })); dialog.show();
     }
     private void history() {
         ScrollView scroll = new ScrollView(this); LinearLayout rows = column(); rows.setPadding(dp(20), 0, dp(20), 0); scroll.addView(rows);

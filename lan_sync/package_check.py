@@ -89,7 +89,14 @@ def run_check(module, report_path):
             assert after == before
             app.table.selection_set(identifier)
             app.edit_schedule().destroy()
-            report = {"ok": True, "checks": ["Tk interface", "add category", "timer completion", "authenticated LAN schedule sync", "save and reload", "focus auto-pause", "mini timer", "statistics page", "CSV export", "calendar filtering", "14-day calendar preview", "embedded sidebar navigation"], "frozen": bool(getattr(module.sys, "frozen", False))}
+            previous = app.items[0]["records"].get(today, 0)
+            assert app.add_manual_time(identifier, today, 30)
+            assert app.items[0]["records"][today] == previous + 1800
+            assert app.session_seconds == 0
+            app.show_manual_time().destroy()
+            app.load_data()
+            assert app.items[0]["records"][today] == previous + 1800
+            report = {"ok": True, "checks": ["Tk interface", "add category", "timer completion", "authenticated LAN schedule sync", "save and reload", "focus auto-pause", "mini timer", "statistics page", "CSV export", "calendar filtering", "14-day calendar preview", "embedded sidebar navigation", "manual time entry and persistence"], "frozen": bool(getattr(module.sys, "frozen", False))}
             app.close()
             app = None
             root = None

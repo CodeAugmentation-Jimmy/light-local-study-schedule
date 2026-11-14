@@ -120,6 +120,7 @@ def build_dashboard(app):
     toolbar = tk.Frame(courses.body, background=WHITE)
     toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 14))
     label(toolbar, "▣ 课程日程", 15, bold=True).pack(side="left")
+    ttk.Button(toolbar, text="补记时间", command=app.show_manual_time).pack(side="right", padx=(6, 0))
     ttk.Button(toolbar, text="✎ 编辑日程", command=app.edit_schedule).pack(side="right")
     app.table = ttk.Treeview(courses.body, columns=("name", "schedule", "goal", "done", "status"),
                              displaycolumns=("name", "schedule", "goal", "status"), show="headings", selectmode="browse", height=5)
@@ -137,7 +138,7 @@ def build_dashboard(app):
     app.show_all_courses = tk.BooleanVar(value=False)
     ttk.Checkbutton(courses.body, text="显示全部课程", variable=app.show_all_courses, command=app.refresh).grid(row=2, column=0, sticky="w", pady=(10, 2))
     menu = tk.Menu(root, tearoff=False)
-    for title, command in (("修改课程安排", app.edit_schedule), ("修改学习目标", app.edit_goal), ("修改名称", app.rename_item), ("删除课程", app.delete_item), ("历史记录", app.show_history)):
+    for title, command in (("补记学习时间", app.show_manual_time), ("修改课程安排", app.edit_schedule), ("修改学习目标", app.edit_goal), ("修改名称", app.rename_item), ("删除课程", app.delete_item), ("历史记录", app.show_history)):
         menu.add_command(label=title, command=command)
     def context_menu(event):
         identifier = app.table.identify_row(event.y)

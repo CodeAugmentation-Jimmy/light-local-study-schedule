@@ -42,7 +42,7 @@ $manifest = [xml](Get-Content -LiteralPath (Join-Path $PSScriptRoot 'app\src\mai
 $manifest.DocumentElement.SetAttribute('package', 'cn.local.studyschedule')
 $manifestPath = Join-Path $build 'AndroidManifest.xml'
 $manifest.Save($manifestPath)
-Invoke-Checked (Join-Path $buildTools 'aapt2.exe') @('link', '-o', $unsigned, '-I', $stagedPlatform, '--manifest', $manifestPath, '--java', $generated, '--min-sdk-version', '26', '--target-sdk-version', '35', '--version-code', '3', '--version-name', '1.2', $resources)
+Invoke-Checked (Join-Path $buildTools 'aapt2.exe') @('link', '-o', $unsigned, '-I', $stagedPlatform, '--manifest', $manifestPath, '--java', $generated, '--min-sdk-version', '26', '--target-sdk-version', '35', '--version-code', '4', '--version-name', '1.3', $resources)
 $sourceFiles = @(Get-ChildItem (Join-Path $stagedSource 'java'), $generated -Recurse -Filter '*.java' | Select-Object -ExpandProperty FullName)
 Invoke-Checked $javac (@('-encoding', 'UTF-8', '--release', '17', '-classpath', $platform, '-d', $classes) + $sourceFiles)
 $classFiles = @(Get-ChildItem -LiteralPath $classes -Recurse -Filter '*.class' | Select-Object -ExpandProperty FullName)

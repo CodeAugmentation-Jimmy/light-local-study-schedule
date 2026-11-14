@@ -175,6 +175,28 @@ public final class StudyStore {
         pauseIfUnscheduled();
         save();
     }
+    public synchronized void addManualTime(String id, String day, int minutes) throws JSONException {
+        LocalDate date;
+        try { date = LocalDate.parse(day); }
+        catch (Exception e) { throw new IllegalArgumentException("请输入有效日期，格式为 年-月-日"); }
+        if (date.getYear() < 1 || date.getYear() > 9999 || !date.toString().equals(day) || date.isAfter(currentDate())) throw new IllegalArgumentException("补记日期须为今天或过去的日期");
+        if (minutes < 1 || minutes > 1440) throw new IllegalArgumentException("请输入 1 至 1440 的整数分钟数");
+        JSONObject item = find(id);
+        if (item == null || item.optBoolean("deleted")) throw new IllegalArgumentException("课程已被删除，请重新选择");
+        tick();
+        JSONObject previous = cloneJson(document);
+        try {
+            JSONObject days = item.getJSONObject("counters");
+            JSONObject values = days.optJSONObject(day);
+            if (values == null) { values = new JSONObject(); days.put(day, values); }
+            values.put(device, values.optDouble(device, 0) + minutes * 60.0);
+            save();
+        } catch (Exception e) {
+            document = previous;
+            prefs.edit().putString("document", previous.toString()).apply();
+            throw e;
+        }
+    }
     public synchronized void delete(String id) throws JSONException {
         if (id.equals(active)) throw new IllegalArgumentException("请先停止该类目的计时");
         JSONObject item = find(id);

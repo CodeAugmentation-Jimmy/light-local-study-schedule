@@ -31,6 +31,67 @@ public class AndroidTimerCheck {
         String id = store.items().get(0).getString("id");
         store.start(id);
         switch (args[0]) {
+            case "manual_time": {
+                store.stop(); wall("2026-11-14T12:00:00Z"); store.start(id); advance(store, 12);
+                store.addManualTime(id, "2026-11-14", 30);
+                near(12, store.sessionSeconds()); check(!store.isPaused(), "Manual entry paused active timer");
+                near(1812, StudyStore.seconds(store.items().get(0), "2026-11-14"));
+                store.addManualTime(id, "2026-11-13", 10);
+                near(600, StudyStore.seconds(store.items().get(0), "2026-11-13"));
+                store.stop();
+                Field singleton = StudyStore.class.getDeclaredField("instance"); singleton.setAccessible(true); singleton.set(null, null);
+                store = StudyStore.get(context);
+                near(1812, StudyStore.seconds(store.items().get(0), "2026-11-14"));
+                break;
+            }
+            case "manual_save_failure": {
+                store.stop(); wall("2026-11-14T12:00:00Z"); store.start(id);
+                SystemClock.advance(12000);
+                context.failNextCommit = true;
+                boolean failed = false;
+                try { store.addManualTime(id, "2026-11-14", 30); }
+                catch (IllegalStateException e) { failed = true; }
+                check(failed, "Manual save failure was not reported");
+                near(12, store.sessionSeconds());
+                near(12, StudyStore.seconds(store.items().get(0), "2026-11-14"));
+                JSONObject persisted = new JSONObject(context.getSharedPreferences("study", 0).getString("document", ""));
+                near(12, StudyStore.seconds(persisted.getJSONArray("items").getJSONObject(0), "2026-11-14"));
+                store.addManualTime(id, "2026-11-14", 30);
+                near(1812, StudyStore.seconds(store.items().get(0), "2026-11-14"));
+                near(12, store.sessionSeconds());
+                break;
+            }
+            case "manual_invalid": {
+                wall("2026-11-14T12:00:00Z"); store.stop();
+                for (String day : new String[]{"2026-11-15", "2026-02-30", "bad", "0000-01-01"}) {
+                    boolean rejected = false;
+                    try { store.addManualTime(id, day, 30); } catch (IllegalArgumentException e) { rejected = true; }
+                    check(rejected, "Invalid manual date accepted: " + day);
+                }
+                for (int value : new int[]{0, -1, 1441}) {
+                    boolean rejected = false;
+                    try { store.addManualTime(id, "2026-11-14", value); } catch (IllegalArgumentException e) { rejected = true; }
+                    check(rejected, "Invalid manual duration accepted");
+                }
+                store.delete(id);
+                boolean rejected = false;
+                try { store.addManualTime(id, "2026-11-14", 30); } catch (IllegalArgumentException e) { rejected = true; }
+                check(rejected, "Deleted course accepts manual time");
+                break;
+            }
+            case "manual_sync": {
+                wall("2026-11-14T12:00:00Z"); store.stop();
+                store.edit(id, "Math", 30, new JSONObject().put("mode", "odd"));
+                store.addManualTime(id, "2026-11-14", 30);
+                JSONObject remote = store.snapshot();
+                remote.getJSONArray("items").getJSONObject(0).getJSONObject("counters").getJSONObject("2026-11-14").put("pc", 600);
+                store.merge(remote); store.merge(remote);
+                near(2400, StudyStore.seconds(store.items().get(0), "2026-11-14"));
+                store.addManualTime(id, "2026-11-14", 5); store.merge(remote);
+                near(2700, StudyStore.seconds(store.items().get(0), "2026-11-14"));
+                check(store.snapshot().getInt("protocol") == 2, "Manual records changed sync protocol");
+                break;
+            }
             case "calendar_rules":
                 JSONObject odd = new JSONObject().put("schedule", new JSONObject().put("mode", "odd"));
                 JSONObject even = new JSONObject().put("schedule", new JSONObject().put("mode", "even"));

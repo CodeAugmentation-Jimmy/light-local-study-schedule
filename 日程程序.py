@@ -30,7 +30,7 @@ def duration(seconds):
 class StudyApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("学习日程 1.2.3")
+        self.root.title("学习日程 1.3.1")
         self.root.configure(background="#edf4fc")
         icon = Path(getattr(sys, "_MEIPASS", Path(__file__).parent / "windows" / "assets")) / "app.ico"
         if os.name == "nt" and icon.exists():
@@ -447,6 +447,79 @@ class StudyApp:
         reload()
         return window
 
+    def add_manual_time(self, identifier, day, minutes):
+        try:
+            selected_date = date.fromisoformat(day)
+        except (ValueError, TypeError):
+            raise ValueError("请输入有效日期，格式为 年-月-日。")
+        if selected_date.isoformat() != day or selected_date > date.today():
+            raise ValueError("补记日期须为今天或过去的日期。")
+        if type(minutes) is not int or not 1 <= minutes <= 1440:
+            raise ValueError("请输入 1 至 1440 的整数分钟数。")
+        item = next((item for item in self.items if item["id"] == identifier), None)
+        if item is None:
+            raise ValueError("课程已被删除，请重新选择。")
+        self.record_elapsed()
+        previous = item["records"].get(day)
+        old_document = deepcopy(self.ledger.document)
+        item["records"][day] = (previous or 0) + minutes * 60
+        self.dirty = True
+        # Roll back before showing a modal error: Tk still handles timer/sync
+        # callbacks while a message box is open.
+        if not self.save_data(silent=True):
+            if previous is None:
+                item["records"].pop(day, None)
+            else:
+                item["records"][day] = previous
+            self.ledger.document = old_document
+            self.dirty = True
+            self.refresh()
+            messagebox.showerror("补记未保存", "本次补记保存失败，已撤销这次增加的时长。\n请检查文件夹权限和剩余空间后重试。")
+            return False
+        self.refresh()
+        return True
+
+    def show_manual_time(self, parent=None, on_saved=None):
+        if not self.items:
+            messagebox.showinfo("请先添加课程", "请先添加课程，例如“英语听力”，再补记学习时间。")
+            return
+        window = tk.Toplevel(self.root)
+        window.title("补记学习时间")
+        window.transient(parent or self.root)
+        form = ttk.Frame(window, padding=22)
+        form.pack(fill="both", expand=True)
+        courses = list(self.items)
+        choices = [f"{index + 1}. {item['name']}" for index, item in enumerate(courses)]
+        ttk.Label(form, text="学习课程（包括今天未安排的课程）").pack(anchor="w")
+        picker = ttk.Combobox(form, values=choices, state="readonly", width=36)
+        selection = self.table.selection()
+        picker.current(next((index for index, item in enumerate(courses) if selection and item["id"] == selection[0]), 0))
+        picker.pack(fill="x", pady=(6, 14))
+        ttk.Label(form, text="学习日期（年-月-日）").pack(anchor="w")
+        day = ttk.Entry(form)
+        day.insert(0, date.today().isoformat())
+        day.pack(fill="x", pady=(6, 14))
+        ttk.Label(form, text="增加时长（分钟，1 至 1440）").pack(anchor="w")
+        minutes = ttk.Entry(form)
+        minutes.insert(0, "30")
+        minutes.pack(fill="x", pady=(6, 14))
+        ttk.Label(form, text="补记会加入所选日期的学习统计，并参与局域网同步。\n每次保存都会增加时长，请只补记尚未记录的时间。", wraplength=420).pack(anchor="w", pady=(0, 14))
+        def save():
+            try:
+                try:
+                    value = int(minutes.get().strip())
+                except ValueError:
+                    raise ValueError("请输入 1 至 1440 的整数分钟数。")
+                if self.add_manual_time(courses[picker.current()]["id"], day.get().strip(), value):
+                    window.destroy()
+                    if on_saved is not None:
+                        on_saved()
+            except ValueError as error:
+                messagebox.showwarning("无法补记", str(error), parent=window)
+        ttk.Button(form, text="保存补记", command=save, style="Accent.TButton").pack(anchor="e")
+        window.grab_set()
+        return window
+
     def add_item(self):
         name = self.name.get().strip()
         try:
@@ -631,6 +704,7 @@ class StudyApp:
                 table.insert("", "end", values=(day, name, duration(seconds)))
             history_summary.config(text=f"累计学习：{duration(sum(row[2] for row in rows))} · {len({row[0] for row in rows})} 天" if rows else "还没有学习记录。")
         ttk.Button(header, text="刷新记录", command=reload_history).pack(side="right")
+        ttk.Button(header, text="补记时间", command=lambda: self.show_manual_time(parent=window, on_saved=reload_history)).pack(side="right", padx=6)
         ttk.Button(header, text="导出全部 CSV", command=lambda: self.export_records(parent=window)).pack(side="right", padx=8)
         reload_history()
 

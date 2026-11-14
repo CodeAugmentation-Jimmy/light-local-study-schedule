@@ -68,6 +68,110 @@ class StudyTests(unittest.TestCase):
         self.assertEqual(self.app.session_seconds, 0)
         self.assertAlmostEqual(sum(self.app.items[0]["records"].values()), 47)
 
+    def test_manual_time_preserves_running_timer_and_merges(self):
+        self.app.start(); self.advance(12)
+        self.assertTrue(self.app.add_manual_time("math", "2026-10-27", 30))
+        self.assertEqual(self.app.session_seconds, 12)
+        self.assertFalse(self.app.paused)
+        self.assertEqual(self.app.items[0]["records"]["2026-10-27"], 1812)
+        self.assertEqual(float(self.app.progress["value"]), 100)
+        from lan_sync import Ledger
+        phone = Ledger("phone", self.app.ledger.stored())
+        items = phone.active(); items[0]["records"]["2026-10-27"] += 600; phone.capture(items)
+        self.app.exchange(phone.document); self.app.exchange(phone.document)
+        self.assertEqual(self.app.items[0]["records"]["2026-10-27"], 2412)
+        self.assertEqual(self.app.session_seconds, 12)
+        self.app.items[0]["schedule"] = {"mode": "even"}
+        self.assertTrue(self.app.add_manual_time("math", "2026-10-25", 30))
+        self.assertEqual(self.app.items[0]["records"]["2026-10-25"], 1800)
+        self.app.load_data()
+        self.assertEqual(self.app.items[0]["records"]["2026-10-25"], 1800)
+
+    def test_manual_time_rejects_invalid_and_rolls_back_failed_save(self):
+        from copy import deepcopy
+        before = deepcopy(self.app.items)
+        for day, minutes in (("2026-10-28", 30), ("2026-02-30", 30), ("bad", 30),
+                             ("2026-10-27", 0), ("2026-10-27", -1), ("2026-10-27", 1441),
+                             ("2026-10-27", 1.5), ("2026-10-27", True)):
+            with self.subTest(day=day, minutes=minutes), self.assertRaises(ValueError):
+                self.app.add_manual_time("math", day, minutes)
+        with self.assertRaises(ValueError):
+            self.app.add_manual_time("deleted", "2026-10-27", 30)
+        self.assertEqual(self.app.items, before)
+        self.app.save_data()
+        ledger_before = deepcopy(self.app.ledger.document)
+        with patch.object(study.os, "replace", side_effect=OSError("disk full")), patch.object(study.messagebox, "showerror"):
+            self.assertFalse(self.app.add_manual_time("math", "2026-10-27", 30))
+        self.assertEqual(self.app.items, before)
+        self.assertEqual(self.app.ledger.document, ledger_before)
+        self.assertTrue(self.app.add_manual_time("math", "2026-10-27", 30))
+        self.assertEqual(self.app.items[0]["records"]["2026-10-27"], 1800)
+
+    def test_manual_time_dialog_default_submission(self):
+        dialog = self.app.show_manual_time()
+        def descendants(widget):
+            for child in widget.winfo_children():
+                yield child
+                yield from descendants(child)
+        save = next(widget for widget in descendants(dialog) if isinstance(widget, study.ttk.Button) and widget.cget("text") == "保存补记")
+        save.invoke()
+        self.assertFalse(dialog.winfo_exists())
+        self.assertEqual(self.app.items[0]["records"]["2026-10-27"], 1800)
+
+    def test_failed_manual_entry_is_rolled_back_before_error_dialog_sync(self):
+        from lan_sync import Ledger
+        self.app.save_data()
+        phone = Ledger("phone", self.app.ledger.stored())
+        phone_items = phone.active()
+        phone_items[0]["records"]["2026-10-27"] = 600
+        phone.capture(phone_items)
+        self.app.start(); self.advance(12)
+        original_replace = study.os.replace
+        attempts = 0
+
+        def fail_once(source, destination):
+            nonlocal attempts
+            attempts += 1
+            if attempts == 1:
+                raise OSError("temporarily unavailable")
+            return original_replace(source, destination)
+
+        def sync_while_error_dialog_is_open(*args, **kwargs):
+            # Tk message boxes keep processing timer and LAN callbacks.
+            self.advance(5)
+            self.app.exchange(phone.document)
+
+        with patch.object(study.os, "replace", side_effect=fail_once), patch.object(
+                study.messagebox, "showerror", side_effect=sync_while_error_dialog_is_open):
+            self.assertFalse(self.app.add_manual_time("math", "2026-10-27", 30))
+        self.assertEqual(self.app.session_seconds, 17)
+        self.assertEqual(self.app.items[0]["records"]["2026-10-27"], 617)
+        self.app.load_data()
+        self.assertEqual(self.app.items[0]["records"]["2026-10-27"], 617)
+        self.assertTrue(self.app.add_manual_time("math", "2026-10-27", 30))
+        self.assertEqual(self.app.items[0]["records"]["2026-10-27"], 2417)
+
+    def test_manual_entry_refreshes_the_open_history_window(self):
+        def descendants(widget):
+            for child in widget.winfo_children():
+                yield child
+                yield from descendants(child)
+
+        self.app.show_history()
+        history = next(widget for widget in self.root.winfo_children()
+                       if isinstance(widget, tk.Toplevel) and widget.title() == "学习历史记录")
+        button = next(widget for widget in descendants(history)
+                      if isinstance(widget, study.ttk.Button) and widget.cget("text") == "补记时间")
+        button.invoke()
+        dialog = next(widget for widget in self.root.winfo_children()
+                      if isinstance(widget, tk.Toplevel) and widget.title() == "补记学习时间")
+        save = next(widget for widget in descendants(dialog)
+                    if isinstance(widget, study.ttk.Button) and widget.cget("text") == "保存补记")
+        save.invoke()
+        table = next(widget for widget in descendants(history) if isinstance(widget, study.ttk.Treeview))
+        self.assertEqual([table.item(row, "values") for row in table.get_children()],
+                         [("2026-10-27", "Math", "00:30:00")])
+
     def test_midnight_split(self):
         self.wall = study.datetime(2026, 10, 27, 23, 59, 50).timestamp()
         self.app.start()

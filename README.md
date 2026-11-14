@@ -6,14 +6,14 @@
 
 [下载最新安装包](https://github.com/CodeAugmentation-Jimmy/light-local-study-schedule/releases/latest)
 
-本次发布包含 Windows 1.2.3 与安卓 1.2，两端支持局域网同步。
+本次发布包含 Windows 1.3.1 与安卓 1.3，两端新增补记学习时间，并支持局域网同步。
 
 | 平台 | 安装包 | 系统要求 |
 | --- | --- | --- |
-| Windows | [StudySchedule-Setup-1.2.3.exe](https://github.com/CodeAugmentation-Jimmy/light-local-study-schedule/releases/download/v1.2.3/StudySchedule-Setup-1.2.3.exe) | Windows 10 2004 及以上／Windows 11，x64 |
-| 安卓 | [StudySchedule-android-1.2.apk](https://github.com/CodeAugmentation-Jimmy/light-local-study-schedule/releases/download/v1.2.3/StudySchedule-android-1.2.apk) | Android 8.0 及以上 |
+| Windows | [StudySchedule-Setup-1.3.1.exe](https://github.com/CodeAugmentation-Jimmy/light-local-study-schedule/releases/download/v1.3.1/StudySchedule-Setup-1.3.1.exe) | Windows 10 2004 及以上／Windows 11，x64 |
+| 安卓 | [StudySchedule-android-1.3.apk](https://github.com/CodeAugmentation-Jimmy/light-local-study-schedule/releases/download/v1.3.1/StudySchedule-android-1.3.apk) | Android 8.0 及以上 |
 
-文件校验值见同一发行版中的 [SHA256SUMS.txt](https://github.com/CodeAugmentation-Jimmy/light-local-study-schedule/releases/download/v1.2.3/SHA256SUMS.txt)。
+文件校验值见同一发行版中的 [SHA256SUMS.txt](https://github.com/CodeAugmentation-Jimmy/light-local-study-schedule/releases/download/v1.3.1/SHA256SUMS.txt)。
 
 - Windows 下载 `.exe` 后运行中文安装向导。安装后从桌面或开始菜单打开“学习日程”。
 - 安卓将 `.apk` 传至手机后安装，按系统提示允许此次文件来源安装应用（忽略手机可能的境外应用提醒）。
@@ -21,9 +21,11 @@
 - GitHub 自动提供的 `Source code` 压缩包是源码，日常使用请下载上述 `.exe` 或 `.apk`。
 
 ## 特色功能
-- 轻量化（安卓版44KB,Windows11MB），并且有极高的自定义空间
+- 轻量化（安卓安装包约 46 KB，Windows 约 12.2 MB），并且有极高的自定义空间
 - 按每天、单数日、双数日或指定星期安排课程，并根据系统日期自动切换。
 - 手动开始、暂停、继续和停止学习计时，可设置专注轮次。
+- 补记学习时间：选择课程、今天或过去的日期，输入分钟数，计入历史统计与局域网同步。
+- Windows 1.3.1 修复补记保存失败时仍可能被同步的问题，历史窗口补记后立即刷新。
 - 查看历史记录、近 7／30 天统计与连续学习天数，电脑版支持 CSV 导出。
 - 电脑和安卓通过可信局域网手动合并课程、目标与学习记录。
 - Windows 提供主窗口内导航、迷你计时窗口和置顶选项。
@@ -35,7 +37,8 @@
 2. 选择每天、单数日、双数日或指定星期上课。例如英语设单数日，数学设双数日。
 3. 在今日课程中选中一门课，手动开始计时，休息时暂停，学习结束后停止。
 4. 在“学习日程”预览未来课程，在“统计分析”查看学习记录。Windows 左侧导航在同一主窗口切换页面。
-5. 更多功能请自行探索……
+5. 漏记学习时间时，点击电脑版“补记时间”或安卓“补记学习时间”，例如选择“英语听力”并填写 30 分钟。每次保存会增加时长，请只在一端补记同一段学习，再同步。
+6. 更多功能请自行探索……
 
 单双日按每月日期判断，31 日和下月 1 日均为单数日。未安排课程的日期不会计入当日课程目标。
 
@@ -66,8 +69,8 @@
 
 ## 当前验证范围
 
-- Windows 已通过 36 项回归测试和打包后程序自检，包括主窗口导航、课程表、计时与局域网同步。
-- 安卓已通过编译、APK 签名校验及 Java 逻辑／跨端协议测试。项目维护者已在 Android 17 环境完成真机验收。
+- 当前源码已通过 41 项回归测试，Windows 1.3.1 已通过打包后程序自检，包括补记、主窗口导航、课程表、计时与局域网同步。
+- 安卓 1.3 已通过编译、APK 签名校验及 Java 逻辑／跨端协议测试。安卓 1.2 的 Android 17 真机验收由项目维护者报告完成；1.3 新增补记功能尚待真机验收。
 - Windows 安装包未做商业代码签名，系统可能显示发布者未知。安卓发行包沿用项目本地调试签名。
 
 ## 使用与同步说明

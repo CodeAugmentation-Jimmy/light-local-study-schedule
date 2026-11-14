@@ -29,7 +29,8 @@ class AndroidTimerTests(unittest.TestCase):
     def test_timer_and_statistics(self):
         for scenario in ("background_off", "background_on", "focus_limit", "manual_pause",
                          "boundary_pause", "recovery", "settings", "sync", "statistics",
-                         "calendar_rules", "calendar_midnight", "calendar_sync", "calendar_upgrade"):
+                         "calendar_rules", "calendar_midnight", "calendar_sync", "calendar_upgrade",
+                         "manual_time", "manual_invalid", "manual_sync", "manual_save_failure"):
             with self.subTest(scenario=scenario):
                 result = subprocess.run([str(self.java), "-Dfile.encoding=UTF-8", "-cp", self.classpath,
                                          "AndroidTimerCheck", scenario], capture_output=True, encoding="utf-8")

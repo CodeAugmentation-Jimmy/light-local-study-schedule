@@ -23,8 +23,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'PyInstaller failed.' }
     & $ISCC /Q (Join-Path $PSScriptRoot 'installer.iss')
     if ($LASTEXITCODE -ne 0) { throw 'Inno Setup failed.' }
-    $installer = Join-Path $projectRoot 'dist\StudySchedule-Setup-1.2.3.exe'
+    $installer = Join-Path $projectRoot 'dist\StudySchedule-Setup-1.3.1.exe'
     $hash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
-    Set-Content -LiteralPath ($installer + '.sha256') -Value ($hash + '  StudySchedule-Setup-1.2.3.exe') -Encoding ASCII
+    Set-Content -LiteralPath ($installer + '.sha256') -Value ($hash + '  StudySchedule-Setup-1.3.1.exe') -Encoding ASCII
     Write-Host "Installer ready: $installer"
 } finally { Pop-Location }

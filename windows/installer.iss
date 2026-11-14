@@ -1,5 +1,5 @@
 ﻿#define AppName "学习日程"
-#define AppVersion "1.2.3"
+#define AppVersion "1.3.1"
 
 [Setup]
 #ifdef IntegrationTest
